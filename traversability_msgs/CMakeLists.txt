@@ -46,12 +46,14 @@ add_message_files(
   FILES
   FootprintPath.msg
   TraversabilityResult.msg
+  PosesTraversabilityResult.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
   CheckFootprintPath.srv
+  CheckPathPoses.srv
   Overwrite.srv
 )
 
