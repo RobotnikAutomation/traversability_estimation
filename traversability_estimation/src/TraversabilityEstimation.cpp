@@ -9,6 +9,7 @@
 #include "traversability_estimation/TraversabilityEstimation.hpp"
 #include "traversability_estimation/common.h"
 #include <traversability_msgs/TraversabilityResult.h>
+#include <traversability_msgs/PosesTraversabilityResult.h>
 #include <param_io/get_param.hpp>
 
 // ROS
@@ -46,6 +47,7 @@ TraversabilityEstimation::TraversabilityEstimation(ros::NodeHandle& nodeHandle)
       nodeHandle_.advertiseService("update_traversability", &TraversabilityEstimation::updateServiceCallback, this);
   getTraversabilityService_ = nodeHandle_.advertiseService("get_traversability", &TraversabilityEstimation::getTraversabilityMap, this);
   footprintPathService_ = nodeHandle_.advertiseService("check_footprint_path", &TraversabilityEstimation::checkFootprintPath, this);
+  pathPosesService_ = nodeHandle_.advertiseService("check_path_poses", &TraversabilityEstimation::checkPathPoses, this);
   updateParameters_ = nodeHandle_.advertiseService("update_parameters", &TraversabilityEstimation::updateParameter, this);
   traversabilityFootprint_ =
       nodeHandle_.advertiseService("traversability_footprint", &TraversabilityEstimation::traversabilityFootprint, this);
@@ -289,6 +291,29 @@ bool TraversabilityEstimation::checkFootprintPath(traversability_msgs::CheckFoot
     path = request.path[j];
     if (!traversabilityMap_.checkFootprintPath(path, result, true)) return false;
     response.result.push_back(result);
+  }
+
+  return true;
+}
+
+bool TraversabilityEstimation::checkPathPoses(traversability_msgs::CheckPathPoses::Request& request,
+                                                  traversability_msgs::CheckPathPoses::Response& response) {
+  const int nPoses = request.path.poses.poses.size();
+  if (nPoses == 0) {
+    ROS_WARN_THROTTLE(periodThrottledConsoleMessages, "No footprint path available to check!");
+    return false;
+  }
+
+  traversability_msgs::PosesTraversabilityResult poses_result;
+  traversability_msgs::TraversabilityResult path_result;
+  traversability_msgs::FootprintPath path;
+  path = request.path;
+  for (int j = 0; j < nPoses; j++) {
+    path.poses.header = request.path.poses.header;
+    path.poses.poses.push_back(request.path.poses.poses[j]);
+    if (!traversabilityMap_.checkFootprintPath(path, path_result, true)) return false;
+    poses_result.poses_traversability.push_back(path_result.traversability);
+    response.result = poses_result;
   }
 
   return true;

@@ -18,6 +18,7 @@
 
 // Traversability estimation
 #include <traversability_msgs/CheckFootprintPath.h>
+#include <traversability_msgs/CheckPathPoses.h>
 
 // ROS
 #include <filters/filter_chain.h>
@@ -85,6 +86,15 @@ class TraversabilityEstimation {
    */
   bool checkFootprintPath(traversability_msgs::CheckFootprintPath::Request& request,
                           traversability_msgs::CheckFootprintPath::Response& response);
+
+  /*!
+   * ROS service callback function to return a boolean to indicate if a path is traversable.
+   * @param request the ROS service request defining footprint path.
+   * @param response the ROS service response containing the traversability of the poses of the footprint path.
+   * @return true if successful.
+   */
+  bool checkPathPoses(traversability_msgs::CheckPathPoses::Request& request,
+                      traversability_msgs::CheckPathPoses::Response& response);
 
   /*!
    * Callback function that receives an image and converts into
@@ -166,6 +176,7 @@ class TraversabilityEstimation {
 
   //! ROS service server.
   ros::ServiceServer footprintPathService_;
+  ros::ServiceServer pathPosesService_;
   ros::ServiceServer updateTraversabilityService_;
   ros::ServiceServer getTraversabilityService_;
   ros::ServiceServer updateParameters_;
