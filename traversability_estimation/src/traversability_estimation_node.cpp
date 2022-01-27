@@ -11,7 +11,7 @@
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "traversability_estimation");
-  ros::NodeHandle nodeHandle("~");
+  ros::NodeHandle nodeHandle;
   traversability_estimation::TraversabilityEstimation traversabilityEstimation(nodeHandle);
 
   // Spin

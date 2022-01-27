@@ -173,6 +173,7 @@ class TraversabilityEstimation {
 
   //! ROS node handle.
   ros::NodeHandle& nodeHandle_;
+  ros::NodeHandle p_nodeHandle_;
 
   //! ROS service server.
   ros::ServiceServer footprintPathService_;
