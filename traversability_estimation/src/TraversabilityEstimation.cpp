@@ -22,7 +22,6 @@ namespace traversability_estimation {
 
 TraversabilityEstimation::TraversabilityEstimation(ros::NodeHandle& nodeHandle)
     : nodeHandle_(nodeHandle),
-      p_nodeHandle_("~"),
       acceptGridMapToInitTraversabilityMap_(false),
       traversabilityMap_(nodeHandle),
       traversabilityType_("traversability"),
@@ -38,21 +37,21 @@ TraversabilityEstimation::TraversabilityEstimation(ros::NodeHandle& nodeHandle)
   submapClient_ = nodeHandle_.serviceClient<grid_map_msgs::GetGridMap>(submapServiceName_);
 
   if (!updateDuration_.isZero()) {
-    updateTimer_ = p_nodeHandle_.createTimer(updateDuration_, &TraversabilityEstimation::updateTimerCallback, this);
+    updateTimer_ = nodeHandle_.createTimer(updateDuration_, &TraversabilityEstimation::updateTimerCallback, this);
   } else {
     ROS_WARN("Update rate is zero. No traversability map will be published.");
   }
 
-  loadElevationMapService_ = p_nodeHandle_.advertiseService("load_elevation_map", &TraversabilityEstimation::loadElevationMap, this);
+  loadElevationMapService_ = nodeHandle_.advertiseService("load_elevation_map", &TraversabilityEstimation::loadElevationMap, this);
   updateTraversabilityService_ =
-      p_nodeHandle_.advertiseService("update_traversability", &TraversabilityEstimation::updateServiceCallback, this);
-  getTraversabilityService_ = p_nodeHandle_.advertiseService("get_traversability", &TraversabilityEstimation::getTraversabilityMap, this);
-  footprintPathService_ = p_nodeHandle_.advertiseService("check_footprint_path", &TraversabilityEstimation::checkFootprintPath, this);
-  pathPosesService_ = p_nodeHandle_.advertiseService("check_path_poses", &TraversabilityEstimation::checkPathPoses, this);
-  updateParameters_ = p_nodeHandle_.advertiseService("update_parameters", &TraversabilityEstimation::updateParameter, this);
+      nodeHandle_.advertiseService("update_traversability", &TraversabilityEstimation::updateServiceCallback, this);
+  getTraversabilityService_ = nodeHandle_.advertiseService("get_traversability", &TraversabilityEstimation::getTraversabilityMap, this);
+  footprintPathService_ = nodeHandle_.advertiseService("check_footprint_path", &TraversabilityEstimation::checkFootprintPath, this);
+  pathPosesService_ = nodeHandle_.advertiseService("check_path_poses", &TraversabilityEstimation::checkPathPoses, this);
+  updateParameters_ = nodeHandle_.advertiseService("update_parameters", &TraversabilityEstimation::updateParameter, this);
   traversabilityFootprint_ =
-      p_nodeHandle_.advertiseService("traversability_footprint", &TraversabilityEstimation::traversabilityFootprint, this);
-  saveToBagService_ = p_nodeHandle_.advertiseService("save_traversability_map_to_bag", &TraversabilityEstimation::saveToBag, this);
+      nodeHandle_.advertiseService("traversability_footprint", &TraversabilityEstimation::traversabilityFootprint, this);
+  saveToBagService_ = nodeHandle_.advertiseService("save_traversability_map_to_bag", &TraversabilityEstimation::saveToBag, this);
   imageSubscriber_ = nodeHandle_.subscribe(imageTopic_, 1, &TraversabilityEstimation::imageCallback, this);
 
   if (acceptGridMapToInitTraversabilityMap_) {
@@ -75,37 +74,37 @@ TraversabilityEstimation::TraversabilityEstimation(ros::NodeHandle& nodeHandle)
 
 TraversabilityEstimation::~TraversabilityEstimation() {
   updateTimer_.stop();
-  p_nodeHandle_.shutdown();
+  nodeHandle_.shutdown();
 }
 
 bool TraversabilityEstimation::readParameters() {
   // Read boolean to switch between raw and fused map.
-  useRawMap_ = param_io::param<bool>(p_nodeHandle_, "use_raw_map", false);
+  useRawMap_ = param_io::param<bool>(nodeHandle_, "use_raw_map", false);
 
-  submapServiceName_ = param_io::param<std::string>(p_nodeHandle_, "submap_service", "/get_grid_map");
+  submapServiceName_ = param_io::param<std::string>(nodeHandle_, "submap_service", "/get_grid_map");
 
   double updateRate;
-  updateRate = param_io::param(p_nodeHandle_, "min_update_rate", 1.0);
+  updateRate = param_io::param(nodeHandle_, "min_update_rate", 1.0);
   if (updateRate != 0.0) {
     updateDuration_.fromSec(1.0 / updateRate);
   } else {
     updateDuration_.fromSec(0.0);
   }
   // Read parameters for image subscriber.
-  imageTopic_ = param_io::param<std::string>(p_nodeHandle_, "image_topic", "/image_elevation");
-  imageResolution_ = param_io::param(p_nodeHandle_, "resolution", 0.03);
-  imageMinHeight_ = param_io::param(p_nodeHandle_, "min_height", 0.0);
-  imageMaxHeight_ = param_io::param(p_nodeHandle_, "max_height", 1.0);
-  imagePosition_.x() = param_io::param(p_nodeHandle_, "image_position_x", 0.0);
-  imagePosition_.y() = param_io::param(p_nodeHandle_, "image_position_y", 0.0);
+  imageTopic_ = param_io::param<std::string>(nodeHandle_, "image_topic", "/image_elevation");
+  imageResolution_ = param_io::param(nodeHandle_, "resolution", 0.03);
+  imageMinHeight_ = param_io::param(nodeHandle_, "min_height", 0.0);
+  imageMaxHeight_ = param_io::param(nodeHandle_, "max_height", 1.0);
+  imagePosition_.x() = param_io::param(nodeHandle_, "image_position_x", 0.0);
+  imagePosition_.y() = param_io::param(nodeHandle_, "image_position_y", 0.0);
 
-  robotFrameId_ = param_io::param<std::string>(p_nodeHandle_, "robot_frame_id", "robot");
-  robot_ = param_io::param<std::string>(p_nodeHandle_, "robot", "robot");
-  package_ = param_io::param<std::string>(p_nodeHandle_, "package", "traversability_estimation");
+  robotFrameId_ = param_io::param<std::string>(nodeHandle_, "robot_frame_id", "robot");
+  robot_ = param_io::param<std::string>(nodeHandle_, "robot", "robot");
+  package_ = param_io::param<std::string>(nodeHandle_, "package", "traversability_estimation");
 
   grid_map::Position mapCenter;
-  mapCenter.x() = param_io::param(p_nodeHandle_, "map_center_x", 0.0);
-  mapCenter.y() = param_io::param(p_nodeHandle_, "map_center_y", 0.0);
+  mapCenter.x() = param_io::param(nodeHandle_, "map_center_x", 0.0);
+  mapCenter.y() = param_io::param(nodeHandle_, "map_center_y", 0.0);
 
   submapPoint_.header.frame_id = robotFrameId_;
   submapPoint_.point.x = mapCenter.x();
@@ -113,14 +112,14 @@ bool TraversabilityEstimation::readParameters() {
   submapPoint_.point.y = mapCenter.y();
 
   submapPoint_.point.z = 0.0;
-  mapLength_.x() = param_io::param(p_nodeHandle_, "map_length_x", 5.0);
-  mapLength_.y() = param_io::param(p_nodeHandle_, "map_length_y", 5.0);
-  footprintYaw_ = param_io::param(p_nodeHandle_, "footprint_yaw", M_PI_2);
+  mapLength_.x() = param_io::param(nodeHandle_, "map_length_x", 5.0);
+  mapLength_.y() = param_io::param(nodeHandle_, "map_length_y", 5.0);
+  footprintYaw_ = param_io::param(nodeHandle_, "footprint_yaw", M_PI_2);
 
   // Grid map to initialize elevation layer
-  acceptGridMapToInitTraversabilityMap_ = param_io::param<bool>(p_nodeHandle_, "grid_map_to_initialize_traversability_map/enable", false);
+  acceptGridMapToInitTraversabilityMap_ = param_io::param<bool>(nodeHandle_, "grid_map_to_initialize_traversability_map/enable", false);
   gridMapToInitTraversabilityMapTopic_ =
-      param_io::param<std::string>(p_nodeHandle_, "grid_map_to_initialize_traversability_map/grid_map_topic_name", "initial_elevation_map");
+      param_io::param<std::string>(nodeHandle_, "grid_map_to_initialize_traversability_map/grid_map_topic_name", "initial_elevation_map");
 
   return true;
 }
