@@ -329,6 +329,9 @@ class TraversabilityMap {
   //! Id of the frame of the robot.
   std::string robotFrameId_;
 
+  //! Publisher of the traversability map as an occupancy grid.
+  ros::Publisher occupancy_grid_publisher_;
+
   //! Publisher of the traversability map.
   ros::Publisher traversabilityMapPublisher_;
 

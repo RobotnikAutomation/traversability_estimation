@@ -55,6 +55,7 @@ TraversabilityMap::TraversabilityMap(ros::NodeHandle& nodeHandle)
 
   readParameters();
   traversabilityMapPublisher_ = nodeHandle_.advertise<grid_map_msgs::GridMap>("traversability_map", 1, true);
+  occupancy_grid_publisher_ = nodeHandle_.advertise<nav_msgs::OccupancyGrid>("map", 1);
   footprintPublisher_ = nodeHandle_.advertise<geometry_msgs::PolygonStamped>("footprint_polygon", 1, true);
   untraversablePolygonPublisher_ = nodeHandle_.advertise<geometry_msgs::PolygonStamped>("untraversable_polygon", 1, true);
 }
@@ -181,7 +182,14 @@ void TraversabilityMap::publishTraversabilityMap() {
 
     grid_map::GridMapRosConverter::toMessage(traversabilityMapCopy, mapMessage);
     mapMessage.info.pose.position.z = zPosition_;
+
+    // grid_map::GridMap map;
+    nav_msgs::OccupancyGrid occupancyGrid;
+    // grid_map::GridMapRosConverter::fromMessage(traversabilityMapCopy, map, {"traversability"});
+    grid_map::GridMapRosConverter::toOccupancyGrid(traversabilityMapCopy, "traversability", 1, 0, occupancyGrid);
+
     traversabilityMapPublisher_.publish(mapMessage);
+    occupancy_grid_publisher_.publish(occupancyGrid); // Publish as occupancy grid
   }
 }
 
