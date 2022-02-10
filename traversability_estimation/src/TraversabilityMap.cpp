@@ -183,9 +183,7 @@ void TraversabilityMap::publishTraversabilityMap() {
     grid_map::GridMapRosConverter::toMessage(traversabilityMapCopy, mapMessage);
     mapMessage.info.pose.position.z = zPosition_;
 
-    // grid_map::GridMap map;
     nav_msgs::OccupancyGrid occupancyGrid;
-    // grid_map::GridMapRosConverter::fromMessage(traversabilityMapCopy, map, {"traversability"});
     grid_map::GridMapRosConverter::toOccupancyGrid(traversabilityMapCopy, "traversability", 1, 0, occupancyGrid);
 
     traversabilityMapPublisher_.publish(mapMessage);
