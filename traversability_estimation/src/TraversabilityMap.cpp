@@ -171,7 +171,7 @@ bool TraversabilityMap::setTraversabilityMap(const grid_map_msgs::GridMap& msg) 
 }
 
 void TraversabilityMap::publishTraversabilityMap() {
-  if (!traversabilityMapPublisher_.getNumSubscribers() < 1) {
+  if (!traversabilityMapPublisher_.getNumSubscribers() < 1 || !occupancy_grid_publisher_.getNumSubscribers() < 1) {
     grid_map_msgs::GridMap mapMessage;
     boost::recursive_mutex::scoped_lock scopedLockForTraversabilityMap(traversabilityMapMutex_);
     grid_map::GridMap traversabilityMapCopy = traversabilityMap_;
