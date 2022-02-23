@@ -114,6 +114,7 @@ bool TraversabilityMap::readParameters() {
   checkForRoughness_ = param_io::param(nodeHandle_, "footprint/verify_roughness_footprint", false);
   checkRobotInclination_ = param_io::param(nodeHandle_, "footprint/check_robot_inclination", false);
   maxGapWidth_ = param_io::param(nodeHandle_, "max_gap_width", 0.3);
+  costmapFreeThreshold_ = param_io::param(nodeHandle_, "costmap_free_threshold", 1.0);
 
   XmlRpc::XmlRpcValue filterParameter;
   bool filterParamsAvailable = param_io::getParam(nodeHandle_, "traversability_map_filters", filterParameter);
@@ -184,7 +185,7 @@ void TraversabilityMap::publishTraversabilityMap() {
     mapMessage.info.pose.position.z = zPosition_;
 
     nav_msgs::OccupancyGrid occupancyGrid;
-    grid_map::GridMapRosConverter::toOccupancyGrid(traversabilityMapCopy, "traversability", 1, 0, occupancyGrid);
+    grid_map::GridMapRosConverter::toOccupancyGrid(traversabilityMapCopy, "traversability", costmapFreeThreshold_, 0, occupancyGrid);
 
     traversabilityMapPublisher_.publish(mapMessage);
     occupancy_grid_publisher_.publish(occupancyGrid); // Publish as occupancy grid

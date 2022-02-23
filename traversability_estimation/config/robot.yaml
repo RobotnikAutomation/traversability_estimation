@@ -11,3 +11,4 @@ max_gap_width: 0.3
 grid_map_to_initialize_traversability_map:
   enable: false
   grid_map_topic_name: initial_elevation_map
+costmap_free_threshold: 1.0
