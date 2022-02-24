@@ -379,6 +379,9 @@ class TraversabilityMap {
   std::vector<std::string> elevationMapLayers_;
   bool elevationMapInitialized_;
 
+  //! Occupancy grid
+  double costmapFreeThreshold_;
+
   //! Mutex lock for traversability map.
   mutable boost::recursive_mutex traversabilityMapMutex_;
   mutable boost::recursive_mutex elevationMapMutex_;
