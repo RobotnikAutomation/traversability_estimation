@@ -309,6 +309,7 @@ bool TraversabilityEstimation::checkPathPoses(traversability_msgs::CheckPathPose
   traversability_msgs::FootprintPath path;
   path = request.path;
   for (int j = 0; j < nPoses; j++) {
+    path.poses.poses.clear();
     path.poses.header = request.path.poses.header;
     path.poses.poses.push_back(request.path.poses.poses[j]);
     if (!traversabilityMap_.checkFootprintPath(path, path_result, true)) return false;
